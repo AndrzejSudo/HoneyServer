@@ -8,11 +8,12 @@ from twisted.internet import reactor
 #all interfaces
 interface = '0.0.0.0'
 
+#analyze PCAPs or use second script to get responses
 VNC_RFB = binascii.unhexlify("524642203030332e3030380a")
 FTP_response = binascii.unhexlify("3232302050726f4654504420312e332e306120536572766572202850726f4654504420416e6f6e796d6f75732053657276657229205b3139322e3136382e312e3233315d0d0a")
 TELNET_response = binascii.unhexlify("fffb01fffb03fffd18fffd1f")
 SSH_response = binascii.unhexlify("5353482d322e302d4f70656e5353485f382e327031205562756e74752d347562756e7475302e390d0a")
-RDP_response = binascii.unhexlify("4d6963726f736f6674205465726d696e616c2053657276696365")
+RDP_sig = binascii.unhexlify("4d6963726f736f6674205465726d696e616c2053657276696365")
 
 def formattedprint(toprint):
 	curr = time.strftime("%Y-%m-%d %H:%M:%S: ")
@@ -46,6 +47,13 @@ class FakeVNCClass(Protocol):
 		self.transport.write(VNC_RFB)
 		formattedprint("Sending VNC response...")
 
+class FakeRDPClass(Protocol):
+	def connectionMade(self):
+		global RDP_sig
+		formattedprint("Inbound RDP connection from: %s (%d/TCP)" % (self.transport.getPeer().host, self.transport.getPeer().port))
+		self.transport.write(RDP_sig)
+		formattedprint("Sending RDP response...")
+
 
 FakeVNC = Factory()
 FakeVNC.protocol = FakeVNCClass
@@ -55,6 +63,8 @@ FakeTELNET = Factory()
 FakeTELNET.protocol = FakeTELNETClass
 FakeSSH = Factory()
 FakeSSH.protocol = FakeSSHClass
+FakeRDP = Factory()
+FakeRDP.protocol = FakeRDPClass
 
 formattedprint("Starting up honeypot python program...")
 reactor.listenTCP(5900, FakeVNC, interface = interface)
