@@ -1,2 +1,2 @@
-# HoneypotServer
-script for spoofing services on honeypot server
+# HoneyServer
+script for spoofing services on your honeypot server
