@@ -1,6 +1,6 @@
 # HoneyServer
 
-honey.py - script for spoofing services on your server
+honey.py - script that listens on ports for FTP, SSH, VNC, RDP services and spoofs their signatures
 
 resp.py - checking banners of services to fed into honey.py responses
 
