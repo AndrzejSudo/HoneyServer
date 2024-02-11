@@ -14,6 +14,9 @@ FTP_response = binascii.unhexlify("3232302050726f4654504420312e332e3061205365727
 TELNET_response = binascii.unhexlify("fffb01fffb03fffd18fffd1f")
 SSH_response = binascii.unhexlify("5353482d322e302d4f70656e5353485f382e327031205562756e74752d347562756e7475302e390d0a")
 RDP_sig = binascii.unhexlify("4d6963726f736f6674205465726d696e616c2053657276696365")
+RPC_resp = binascii.unhexlify("4D6963726F736F66742057696E646F777320525043")
+SQL_resp = binascii.unhexlify("4D6963726F736F66742053514C20536572766572203230303020535033")
+MSSSB_resp = binascii.unhexlify("4D6963726F736F66742053514C2053657276657220536572766963652042726F6B6572")
 
 def formattedprint(toprint):
 	curr = time.strftime("%Y-%m-%d %H:%M:%S: ")
@@ -54,6 +57,26 @@ class FakeRDPClass(Protocol):
 		self.transport.write(RDP_sig)
 		formattedprint("Sending RDP response...")
 
+class FakeRPCClass(Protocol):
+	def connectionMade(self):
+		global RPC_resp
+		formattedprint("Inbound RPC connection from: %s (%d/TCP)" % (self.transport.getPeer().host, self.transport.getPeer().port))
+		self.transport.write(RPC_resp)
+		formattedprint("Sending RPC response...")
+
+class FakeSQLClass(Protocol):
+	def connectionMade(self):
+		global SQL_resp
+		formattedprint("Inbound SQL connection from: %s (%d/TCP)" % (self.transport.getPeer().host, self.transport.getPeer().port))
+		self.transport.write(SQL_resp)
+		formattedprint("Sending SQL response...")
+
+class FakeMSSSBClass(Protocol):
+	def connectionMade(self):
+		global MSSSB_resp
+		formattedprint("Inbound MSSSB connection from: %s (%d/TCP)" % (self.transport.getPeer().host, self.transport.getPeer().port))
+		self.transport.write(SQL_resp)
+		formattedprint("Sending MSSSB response...")
 
 FakeVNC = Factory()
 FakeVNC.protocol = FakeVNCClass
@@ -65,13 +88,23 @@ FakeSSH = Factory()
 FakeSSH.protocol = FakeSSHClass
 FakeRDP = Factory()
 FakeRDP.protocol = FakeRDPClass
+FakeRPC = Factory()
+FakeRPC.protocol = FakeRPCClass
+FakeSQLServer = Factory()
+FakeSQLServer.protocol = FakeSQLClass
+FakeMSSSB = Factory()
+FakeMSSSB.protocol = FakeMSSSBClass
 
 formattedprint("Starting up honeypot python program...")
-reactor.listenTCP(5900, FakeVNC, interface = interface)
-reactor.listenTCP(21, FakeFTP, interface = interface)
-reactor.listenTCP(23, FakeTELNET, interface = interface)
-reactor.listenTCP(2222, FakeSSH, interface = interface)
-reactor.listenTCP(3389, FakeRDP, interface = interface)
+#reactor.listenTCP(5900, FakeVNC, interface = interface)
+#reactor.listenTCP(21, FakeFTP, interface = interface)
+#reactor.listenTCP(23, FakeTELNET, interface = interface)
+#reactor.listenTCP(2222, FakeSSH, interface = interface)
+#reactor.listenTCP(3389, FakeRDP, interface = interface)
+reactor.listenTCP(135, FakeRPC, interface = interface)
+reactor.listenTCP(1433, FakeSQLServer, interface = interface)
+reactor.listenTCP(1434, FakeSQLServer, interface = interface)
+reactor.listenTCP(4022, FakeMSSSB, interface = interface)
 reactor.run()
 formattedprint("Shutting down honeypot python program...")
 
